@@ -52,14 +52,49 @@ class WorkspaceContent extends React.Component {
 
   filterWorkspaceContent = (contentList, filter) => filter.length === 0
     ? contentList
-    : contentList.filter(c => c.type === 'folder' || filter.includes(c.type)) // keep unfiltered files and folders
+    : contentList
+      .filter(c => c.type === 'folder' || filter.includes(c.type)) // keep unfiltered files and folders
       .map(c => c.type !== 'folder' ? c : {...c, content: this.filterWorkspaceContent(c.content, filter)}) // recursively filter folder content
       .filter(c => c.type !== 'folder' || c.content.length > 0) // remove empty folder
+
+  // filterWorkspaceContent2 = (contentList, filterList) => {
+  //   if (filter.length === 0) return contentList
+  //
+  //   return contentList
+  //     .filter(c => c.type === 'folder' || filterList.includes(c.type))
+  //     .map(c => {
+  //       if (c.type !== 'folder') return c
+  //       else return {
+  //         ...c,
+  //         content: this.filterworkspaceContent2(c.content, filterList)
+  //       }
+  //     })
+  //     .filter(c => c.type !== 'folder' || c.content.length > 0)
+  // }
+
+  flatten = arr => arr.reduce((flat, toFlatten) => flat.concat(
+    Array.isArray(toFlatten.content) ? this.flatten(toFlatten.content) : toFlatten
+  ), [])
+
+  flatten2 = arr => arr.reduce((flat, toFlatten) => flat.concat(
+    toFlatten.type === 'folder'
+      ? [toFlatten, flat.concat(toFlatten, this.flatten(toFlatten.content))]
+      : toFlatten
+  ), [])
+
+  filterWorkspaceContent3 = (contentList, filterList) => {
+    if (filterList.length === 0) return contentList
+
+    const temp = this.flatten2(contentList)
+    console.log(temp)
+    return temp.filter(c => c.type === 'folder' || filterList.includes(c.type))
+  }
 
   render () {
     const { workspace, app } = this.props
 
-    const filteredWorkspaceContent = this.filterWorkspaceContent(workspace.content, workspace.filter)
+    const filteredWorkspaceContent = this.filterWorkspaceContent3(workspace.content, workspace.filter)
+    console.log(filteredWorkspaceContent)
 
     return (
       <div className='sidebarpagecontainer'>
